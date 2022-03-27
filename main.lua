@@ -5,6 +5,11 @@ HEIGHT = 720
 
 -- https://github.com/Ulydev/push
 push = require 'push'
+-- https://github.com/vrld/hump/blob/master/class.lua
+Class = require 'class'
+
+require 'Paddle'
+require 'Ball'
 
 V_WIDTH = 432
 V_HEIGHT = 243
@@ -40,43 +45,69 @@ function love.load()
         resizable = false,
         vsync = true
     })
-
-    ballX = V_WIDTH/2 -2
-    ballY = V_HEIGHT/2 - 2
-
-    ballDX = math.random(2) == 1 and 100 or -100
-    ballDY = math.random(-50, 50)
+    --[[ REPLACED WITH BALL CLASS
+         ballX = V_WIDTH/2 -2
+         ballY = V_HEIGHT/2 - 2
+    ]]
+    -- Ball Class
+    ball = Ball(V_WIDTH / 2 - 2, V_HEIGHT / 2 - 2, 4, 4)
+   
+    --[[ REPLACED WITH BALL CLASS
+        ballDX = math.random(2) == 1 and 100 or -100
+        ballDY = math.random(-50, 50)
+    ]]
+   
 
     --Initialize score variable
     player1Score = 0
     player2Score = 0
 
-    player1Y = 30
-    player2Y = V_HEIGHT - 50
+    --[[ REPLACED WITH PADDLE CLASS
+        player1Y = 30
+        player2Y = V_HEIGHT - 50
+    ]]
+
+    player1 = Paddle(10, 30, 5, 20)
+    player2 = Paddle(V_WIDTH - 15, V_HEIGHT - 30, 5, 20)
   
 
     gamestate = 'start'
 end
-
+-- Runs every frame with "dt" or deltaTime in second since the last frame.
 function love.update(dt)
     --player 1 paddle control
     if love.keyboard.isDown('w')then
-        player1Y = math.max(0, player1Y + -paddleSpeed * dt)
+        --player1Y = math.max(0, player1Y + -paddleSpeed * dt) (REPLACED WITH player1 USING PADDLE CLASS)
+        player1.dy = -paddleSpeed
     elseif love.keyboard.isDown('s')then
-        player1Y = math.min(V_HEIGHT-20, player1Y + paddleSpeed * dt)
+        --player1Y = math.min(V_HEIGHT-20, player1Y + paddleSpeed * dt)
+        player1.dy = paddleSpeed
+    else
+        player1.dy = 0
     end
         
     --player 2 paddle control
     if love.keyboard.isDown('up')then
-        player2Y = math.max(0, player2Y + -paddleSpeed * dt)
+        --player2Y = math.max(0, player2Y + -paddleSpeed * dt) (REPLACE WITH player2 USING PADDLE CLASS)
+        player2.dy = -paddleSpeed
     elseif love.keyboard.isDown('down')then
-        player2Y = math.min(V_HEIGHT-20, player2Y + paddleSpeed * dt)
+        --player2Y = math.min(V_HEIGHT-20, player2Y + paddleSpeed * dt)
+        player2.dy = paddleSpeed
+    else
+        player2.dy = 0
+            
     end
 
     if gamestate == 'play' then
-        ballX = ballX + ballDX * dt
-        ballY = ballY + ballDY * dt
+        --[[ REPLACED WITH BALL CLASS
+            ballX = ballX + ballDX * dt
+            ballY = ballY + ballDY * dt
+        ]]
+        ball:update(dt)
     end
+
+    player1:update(dt)
+    player2:update(dt)
 
 end
 
@@ -90,14 +121,17 @@ function love.keypressed(key)
             gamestate = 'play'
         else
             gamestate = 'start'
+            --[[ REPLACED WITH BALL CLASS
+                --start the ball in the middle of the screen
+                ballX = V_WIDTH/2-2
+                ballY = V_HEIGHT/2-2
             
-            --start the ball in the middle of the screen
-            ballX = V_WIDTH/2-2
-            ballY = V_HEIGHT/2-2
-            
-            --give ball x and y velocity a random starting number
-            ballDX = math.random(2) == 1 and 100 or -100
-            ballDY = math.random(-50, 50) * 1.5
+                --give ball x and y velocity a random starting number
+                ballDX = math.random(2) == 1 and 100 or -100
+                ballDY = math.random(-50, 50) * 1.5
+            ]]
+            --ball's new reset method
+            ball:reset()
         end
     end
 end
@@ -136,11 +170,17 @@ function love.draw()
     --PADDLES & BALL
 
     -- Left paddles
-    love.graphics.rectangle('fill', 10, player1Y, 5, 20)
+    --love.graphics.rectangle('fill', 10, player1Y, 5, 20)(REPLACED WITH PADDLE CLASS)
+    --new Paddle's render method
+    player1:render()
     -- Right paddles
-    love.graphics.rectangle('fill', V_WIDTH - 15, player2Y, 5, 20)
+    --love.graphics.rectangle('fill', V_WIDTH - 15, player2Y, 5, 20)(REPALACED WITH PADDLE CLASS)
+     --new Paddle's render method
+     player2:render()
     -- BALL
-    love.graphics.rectangle('fill', ballX, ballY, 4, 4)
+    --love.graphics.rectangle('fill', ballX, ballY, 4, 4)(REPLACED WITH BALL CLASS)
+    --new Ball's renders method
+    ball:render()
  
     push:apply('end')
     
