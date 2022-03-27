@@ -19,6 +19,7 @@ paddleSpeed = 200
 --Load when the game start, once, used to initialize the game
 function love.load()
 
+    love.window.setTitle('Pong')
     -- Graphisc & Texture Filtering
     -- nearest-neightbor filtering on upscaling and downscaling to prevent text blurry
     love.graphics.setDefaultFilter('nearest', 'nearest')
@@ -162,7 +163,7 @@ function love.draw()
     -- draw the score
     love.graphics.print(tostring(player1Score), V_WIDTH/2 - 50, V_HEIGHT/3)
     love.graphics.print(tostring(player2Score), V_WIDTH/2 + 30, V_HEIGHT/3)
-
+    
 
     -- draw net
     --.graphics.rectangle('fill', V_WIDTH/2, V_HEIGHT/2, 1, 4)
@@ -181,7 +182,13 @@ function love.draw()
     --love.graphics.rectangle('fill', ballX, ballY, 4, 4)(REPLACED WITH BALL CLASS)
     --new Ball's renders method
     ball:render()
- 
+    displayFPS()
     push:apply('end')
     
+end
+
+function displayFPS()
+    love.graphics.setFont(smallFont)
+    love.graphics.setColor(0, 255 ,0, 255)
+    love.graphics.print('FPS: '.. tostring(love.timer.getFPS()), 10, 10)
 end
