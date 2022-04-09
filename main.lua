@@ -104,6 +104,43 @@ function love.update(dt)
             ballX = ballX + ballDX * dt
             ballY = ballY + ballDY * dt
         ]]
+        if ball:collide(player1) then
+            -- detect the ball collision with paddles, reverse dx if its true
+            -- slightly increase it, then altering the dy based on position
+            ball.dx = -ball.dx * 1.03
+            ball.x = player1.x + 5
+
+            -- keep the velocity going in the same direction, but randomize it
+            if ball.dy < 0 then
+                ball.dy = -math.random(10, 150)
+            else
+                ball.dy = math.random(10, 150)
+            end
+        end
+        if ball:collide(player2) then
+            -- detect the ball collision with paddles, reverse dx if its true
+            -- slightly increase it, then altering the dy based on position
+            ball.dx = -ball.dx * 1.03
+            ball.x = player2.x - 4
+
+            -- keep the velocity going in the same direction, but randomize it
+            if ball.dy < 0 then
+                ball.dy = -math.random(10, 150)
+            else
+                ball.dy = math.random(10, 150)
+            end
+        end
+
+        -- detect upper and lower boundary og the screen and reverse it  y velocity
+        if ball.y <= 0 then
+            ball.y = 0
+            ball.dy = -ball.dy
+        end
+
+        if ball.y >= V_HEIGHT - 4 then
+            ball.y = V_HEIGHT - 4
+            ball.dy = -ball.dy
+        end
         ball:update(dt)
     end
 
