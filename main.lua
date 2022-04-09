@@ -63,6 +63,8 @@ function love.load()
     player1Score = 0
     player2Score = 0
 
+    servingPlayer = 1
+
     --[[ REPLACED WITH PADDLE CLASS
         player1Y = 30
         player2Y = V_HEIGHT - 50
@@ -76,34 +78,46 @@ function love.load()
 end
 -- Runs every frame with "dt" or deltaTime in second since the last frame.
 function love.update(dt)
-    --player 1 paddle control
-    if love.keyboard.isDown('w')then
-        --player1Y = math.max(0, player1Y + -paddleSpeed * dt) (REPLACED WITH player1 USING PADDLE CLASS)
-        player1.dy = -paddleSpeed
-    elseif love.keyboard.isDown('s')then
-        --player1Y = math.min(V_HEIGHT-20, player1Y + paddleSpeed * dt)
-        player1.dy = paddleSpeed
-    else
-        player1.dy = 0
+
+    if gamestate == 'serve' then
+        -- initialize ball's velocity based on player who last scored
+        ball.dy = math.random(-50 ,50)
+        if servingPlayer == 1 then
+            ball.dx = math.random(140, 200)
+        else
+            ball.dx = -math.random(140, 200)
+        end
     end
-        
-    --player 2 paddle control
-    if love.keyboard.isDown('up')then
-        --player2Y = math.max(0, player2Y + -paddleSpeed * dt) (REPLACE WITH player2 USING PADDLE CLASS)
-        player2.dy = -paddleSpeed
-    elseif love.keyboard.isDown('down')then
-        --player2Y = math.min(V_HEIGHT-20, player2Y + paddleSpeed * dt)
-        player2.dy = paddleSpeed
-    else
-        player2.dy = 0
+
+        --player 1 paddle control
+        if love.keyboard.isDown('w')then
+            --player1Y = math.max(0, player1Y + -paddleSpeed * dt) (REPLACED WITH player1 USING PADDLE CLASS)
+            player1.dy = -paddleSpeed
+        elseif love.keyboard.isDown('s')then
+            --player1Y = math.min(V_HEIGHT-20, player1Y + paddleSpeed * dt)
+            player1.dy = paddleSpeed
+        else
+            player1.dy = 0
+        end
             
-    end
+        --player 2 paddle control
+        if love.keyboard.isDown('up')then
+            --player2Y = math.max(0, player2Y + -paddleSpeed * dt) (REPLACE WITH player2 USING PADDLE CLASS)
+            player2.dy = -paddleSpeed
+        elseif love.keyboard.isDown('down')then
+            --player2Y = math.min(V_HEIGHT-20, player2Y + paddleSpeed * dt)
+            player2.dy = paddleSpeed
+        else
+            player2.dy = 0
+                
+        end
 
     if gamestate == 'play' then
         --[[ REPLACED WITH BALL CLASS
             ballX = ballX + ballDX * dt
             ballY = ballY + ballDY * dt
         ]]
+    
         if ball:collide(player1) then
             -- detect the ball collision with paddles, reverse dx if its true
             -- slightly increase it, then altering the dy based on position
@@ -141,7 +155,29 @@ function love.update(dt)
             ball.y = V_HEIGHT - 4
             ball.dy = -ball.dy
         end
-        ball:update(dt)
+
+        --THE SCORE--
+        -- if the ball reach the left or right edge of the screen
+        -- go back to start and update the score
+
+        if ball.x < 0 then
+            servingPlayer = 1
+            player2Score = player2Score + 1
+            ball:reset()
+            gamestate = 'serve'
+        end
+
+        if ball.x > V_WIDTH then
+            servingPlayer = 2
+            player1Score = player1Score + 1
+            ball:reset()
+            gamestate = 'serve'
+        end
+
+        if gamestate == 'play' then
+            ball:update(dt)
+        end
+       
     end
 
     player1:update(dt)
@@ -156,9 +192,9 @@ function love.keypressed(key)
         love.event.quit()
     elseif key == 'enter' or key == 'return' then
         if gamestate == 'start' then
+            gamestate = 'serve'
+        elseif gamestate == 'serve' then
             gamestate = 'play'
-        else
-            gamestate = 'start'
             --[[ REPLACED WITH BALL CLASS
                 --start the ball in the middle of the screen
                 ballX = V_WIDTH/2-2
@@ -169,7 +205,7 @@ function love.keypressed(key)
                 ballDY = math.random(-50, 50) * 1.5
             ]]
             --ball's new reset method
-            ball:reset()
+            --ball:reset()
         end
     end
 end
@@ -180,27 +216,30 @@ function love.draw()
     push:apply('start')
    -- clear the screen with a sepcific color
    love.graphics.clear(40/255, 45/255, 52/255, 255/255)
+   
+   displayScore()
 
     love.graphics.setFont(smallFont)
     if gamestate == 'start' then
     love.graphics.printf(
-        'Hello Pong!', -- text to ender
+        'Welcome to Pong!', -- text to ender
         0,             --  starting x (center)
         --replace heihgt and width with virtual one
         20,            -- starting y (half of the screen)
         V_WIDTH,       -- number of pixels to center within
         'center'       -- alignment mode, center, left, or right
+        
     )
-    else
+    love.graphics.printf('Press ENTER to begin!', 0, 35, V_WIDTH, 'center')
+    elseif gamestate == 'serve' then
+        love.graphics.setFont(smallFont)
+        love.graphics.printf('Player ' .. tostring(servingPlayer) .. "'s Serve",0, 10, V_WIDTH, 'center')
+    love.graphics.printf('Press ENTER to serve!', 0, 20, V_WIDTH, 'center')
+    elseif gamestate == 'play' then
     love.graphics.printf('PLAY', 0, 20, V_WIDTH, 'center')
+
     end
 
-    -- set score to use scroefont
-    love.graphics.setFont(scoreFont)
-    -- draw the score
-    love.graphics.print(tostring(player1Score), V_WIDTH/2 - 50, V_HEIGHT/3)
-    love.graphics.print(tostring(player2Score), V_WIDTH/2 + 30, V_HEIGHT/3)
-    
 
     -- draw net
     --.graphics.rectangle('fill', V_WIDTH/2, V_HEIGHT/2, 1, 4)
@@ -223,7 +262,14 @@ function love.draw()
     push:apply('end')
     
 end
+function displayScore()
+-- set score to use scroefont
+love.graphics.setFont(scoreFont)
+-- draw the score
+love.graphics.print(tostring(player1Score), V_WIDTH/2 - 50, V_HEIGHT/3)
+love.graphics.print(tostring(player2Score), V_WIDTH/2 + 30, V_HEIGHT/3)
 
+end
 function displayFPS()
     love.graphics.setFont(smallFont)
     love.graphics.setColor(0, 255 ,0, 255)
