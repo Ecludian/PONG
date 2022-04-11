@@ -27,7 +27,7 @@ function love.load()
     math.randomseed(os.time())
     -- create font object
     smallFont = love.graphics.newFont('font.ttf', 8)
-
+    largeFont = love.graphics.newFont('font.ttf', 16)
     scoreFont = love.graphics.newFont('font.ttf', 32)
 
     -- set LOVE2D's active font to the same font we choose
@@ -87,32 +87,8 @@ function love.update(dt)
         else
             ball.dx = -math.random(140, 200)
         end
-    end
 
-        --player 1 paddle control
-        if love.keyboard.isDown('w')then
-            --player1Y = math.max(0, player1Y + -paddleSpeed * dt) (REPLACED WITH player1 USING PADDLE CLASS)
-            player1.dy = -paddleSpeed
-        elseif love.keyboard.isDown('s')then
-            --player1Y = math.min(V_HEIGHT-20, player1Y + paddleSpeed * dt)
-            player1.dy = paddleSpeed
-        else
-            player1.dy = 0
-        end
-            
-        --player 2 paddle control
-        if love.keyboard.isDown('up')then
-            --player2Y = math.max(0, player2Y + -paddleSpeed * dt) (REPLACE WITH player2 USING PADDLE CLASS)
-            player2.dy = -paddleSpeed
-        elseif love.keyboard.isDown('down')then
-            --player2Y = math.min(V_HEIGHT-20, player2Y + paddleSpeed * dt)
-            player2.dy = paddleSpeed
-        else
-            player2.dy = 0
-                
-        end
-
-    if gamestate == 'play' then
+    elseif gamestate == 'play' then
         --[[ REPLACED WITH BALL CLASS
             ballX = ballX + ballDX * dt
             ballY = ballY + ballDY * dt
@@ -163,22 +139,57 @@ function love.update(dt)
         if ball.x < 0 then
             servingPlayer = 1
             player2Score = player2Score + 1
-            ball:reset()
-            gamestate = 'serve'
+
+            if player2Score == 10 then
+                winningPlayer = 2
+                gamestate = 'done'
+            else
+                gamestate = 'serve'
+                ball:reset()
+            end
         end
+
 
         if ball.x > V_WIDTH then
             servingPlayer = 2
             player1Score = player1Score + 1
-            ball:reset()
-            gamestate = 'serve'
+
+            if player1Score == 10 then
+                winningPlayer = 1
+                gamestate = 'done'
+            else
+                gamestate = 'serve'
+                ball:reset()
+            end
+        end
+    end
+        
+        --player 1 paddle control
+        if love.keyboard.isDown('w')then
+            --player1Y = math.max(0, player1Y + -paddleSpeed * dt) (REPLACED WITH player1 USING PADDLE CLASS)
+            player1.dy = -paddleSpeed
+        elseif love.keyboard.isDown('s')then
+            --player1Y = math.min(V_HEIGHT-20, player1Y + paddleSpeed * dt)
+            player1.dy = paddleSpeed
+        else
+            player1.dy = 0
+        end
+            
+        --player 2 paddle control
+        if love.keyboard.isDown('up')then
+            --player2Y = math.max(0, player2Y + -paddleSpeed * dt) (REPLACE WITH player2 USING PADDLE CLASS)
+            player2.dy = -paddleSpeed
+        elseif love.keyboard.isDown('down')then
+            --player2Y = math.min(V_HEIGHT-20, player2Y + paddleSpeed * dt)
+            player2.dy = paddleSpeed
+        else
+            player2.dy = 0
+                
         end
 
         if gamestate == 'play' then
             ball:update(dt)
         end
-       
-    end
 
     player1:update(dt)
     player2:update(dt)
@@ -195,6 +206,22 @@ function love.keypressed(key)
             gamestate = 'serve'
         elseif gamestate == 'serve' then
             gamestate = 'play'
+        elseif  gamestate == 'done' then
+            gamestate = 'serve'
+
+            ball:reset()
+
+            -- reset scores to 0
+            player1Score = 0
+            player2Score = 0
+
+            -- decide which player who serve according to opposite of winning player
+            if winningPlayer == 1 then
+                servingPlayer = 2
+            else
+                servingPlayer = 1
+            end
+            
             --[[ REPLACED WITH BALL CLASS
                 --start the ball in the middle of the screen
                 ballX = V_WIDTH/2-2
@@ -237,6 +264,13 @@ function love.draw()
     love.graphics.printf('Press ENTER to serve!', 0, 20, V_WIDTH, 'center')
     elseif gamestate == 'play' then
     love.graphics.printf('PLAY', 0, 20, V_WIDTH, 'center')
+
+    elseif  gamestate == 'done' then
+        love.graphics.setFont(largeFont)
+        love.graphics.printf('Player ' .. tostring(winningPlayer) .. ' Wins!',0,10, V_WIDTH, 'center' )
+        love.graphics.setFont(smallFont)
+        love.graphics.printf('Press Enter to restart!', 0, 30, V_WIDTH, 'center')
+        
 
     end
 
