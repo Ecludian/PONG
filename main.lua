@@ -33,6 +33,13 @@ function love.load()
     -- set LOVE2D's active font to the same font we choose
     love.graphics.setFont(smallFont)
 
+    sounds = {
+        ['paddles_Hit'] = love.audio.newSource('sounds/Paddles_Hit.wav', 'static'),
+        ['wall_Hit'] = love.audio.newSource('sounds/Wall_Hit.wav', 'static'),
+        ['score'] = love.audio.newSource('sounds/Score.wav', 'static'),
+        ['victory'] = love.audio.newSource('sounds/victory_stage.ogg', 'static')
+    }
+
     -- Replace with push function instead
     --[[  love.window.setMode(WIDTH, HEIGHT,{
          fullscreen = false,
@@ -43,7 +50,7 @@ function love.load()
 
     push:setupScreen(V_WIDTH, V_HEIGHT, WIDTH, HEIGHT, {
         fullscreen = false,
-        resizable = false,
+        resizable = true,
         vsync = true
     })
     --[[ REPLACED WITH BALL CLASS
@@ -76,6 +83,11 @@ function love.load()
 
     gamestate = 'start'
 end
+
+function love.resize(w, h)
+    push:resize(w, h)
+end
+
 -- Runs every frame with "dt" or deltaTime in second since the last frame.
 function love.update(dt)
 
@@ -106,6 +118,8 @@ function love.update(dt)
             else
                 ball.dy = math.random(10, 150)
             end
+
+            sounds['paddles_Hit']:play()
         end
         if ball:collide(player2) then
             -- detect the ball collision with paddles, reverse dx if its true
@@ -119,17 +133,20 @@ function love.update(dt)
             else
                 ball.dy = math.random(10, 150)
             end
+            sounds['paddles_Hit']:play()
         end
 
         -- detect upper and lower boundary og the screen and reverse it  y velocity
         if ball.y <= 0 then
             ball.y = 0
             ball.dy = -ball.dy
+            sounds['wall_Hit']:play()
         end
 
         if ball.y >= V_HEIGHT - 4 then
             ball.y = V_HEIGHT - 4
             ball.dy = -ball.dy
+            sounds['wall_Hit']:play()
         end
 
         --THE SCORE--
@@ -139,10 +156,12 @@ function love.update(dt)
         if ball.x < 0 then
             servingPlayer = 1
             player2Score = player2Score + 1
+            sounds['score']:play()
 
             if player2Score == 10 then
                 winningPlayer = 2
                 gamestate = 'done'
+                sounds['victory']:play()
             else
                 gamestate = 'serve'
                 ball:reset()
@@ -153,10 +172,12 @@ function love.update(dt)
         if ball.x > V_WIDTH then
             servingPlayer = 2
             player1Score = player1Score + 1
+            sounds['score']:play()
 
             if player1Score == 10 then
                 winningPlayer = 1
                 gamestate = 'done'
+                sounds['victory']:play()
             else
                 gamestate = 'serve'
                 ball:reset()
